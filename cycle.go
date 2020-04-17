@@ -37,11 +37,13 @@ func newWalker() *walker {
 type cycle struct {
 	iter, depth int
 }
+
 func (w *walker) cycles() []cycle {
 	return w.cycle
 }
 
 var errCycle = errors.New("cycle detected")
+
 func isCycleError(err error) bool {
 	return err != nil && err == errCycle
 }
@@ -59,9 +61,8 @@ func (w *walker) Walk(root *Node, mutate func(node *Node) error) error {
 		}
 	}
 
-	// Detect cycle.
-	v := reflect.ValueOf(root)
-	ptr := v.Pointer()
+	// Detect cycles.
+	ptr := reflect.ValueOf(root).Pointer()
 	if pDepth, ok := w.pointers[ptr]; ok && pDepth < w.depth {
 		w.cycle = append(w.cycle, cycle{w.iter, w.depth})
 		return errCycle
