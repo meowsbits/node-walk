@@ -81,7 +81,7 @@ func (w *walker) Walk(root *Node, mutate func(node *Node) error) error {
 		w.depth--
 	}()
 
-	for i, item := range root.Children {
+	for _, item := range root.Children {
 		err := w.Walk(item, mutate)
 		if errYesCycleNo(err) {
 			return err
@@ -89,7 +89,6 @@ func (w *walker) Walk(root *Node, mutate func(node *Node) error) error {
 		if errIsCycle(err) {
 			item.Cycling = true
 		}
-		root.Children[i] = item
 	}
 
 	for _, list := range root.Cousins {
