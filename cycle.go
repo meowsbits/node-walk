@@ -42,12 +42,18 @@ func (w *walker) cycles() []cycle {
 	return w.cycle
 }
 
+// errCycle is returned when a cycle is detected.
+// A cycle is when fields (or fields of fields... of fields)
+// are found to contain duplicate addresses.
 var errCycle = errors.New("cycle detected")
 
-func isCycleError(err error) bool {
-	return err != nil && err == errCycle
+// errIsCyle tells us if the err is equivalent to a cycle error.
+func errIsCycle(err error) bool {
+	return err == errCycle
 }
-func errPositiveAndIsNotCycle(err error) bool {
+
+// errYesCycleNo tells us if the error is not nil and not a cycle indicator.
+func errYesCycleNo(err error) bool {
 	return err != nil && err != errCycle
 }
 
@@ -77,10 +83,10 @@ func (w *walker) Walk(root *Node, mutate func(node *Node) error) error {
 
 	for i, item := range root.Children {
 		err := w.Walk(item, mutate)
-		if errPositiveAndIsNotCycle(err) {
+		if errYesCycleNo(err) {
 			return err
 		}
-		if isCycleError(err) {
+		if errIsCycle(err) {
 			item.Cycling = true
 		}
 		root.Children[i] = item
@@ -89,10 +95,10 @@ func (w *walker) Walk(root *Node, mutate func(node *Node) error) error {
 	for _, list := range root.Cousins {
 		for i, item := range list {
 			err := w.Walk(&item, mutate)
-			if errPositiveAndIsNotCycle(err) {
+			if errYesCycleNo(err) {
 				return err
 			}
-			if isCycleError(err) {
+			if errIsCycle(err) {
 				item.Cycling = true
 			}
 			list[i] = item
